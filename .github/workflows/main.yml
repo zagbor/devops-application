@@ -1,0 +1,58 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        java-version: [11, 17]
+
+    steps:
+      # Checkout репозиторий
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Установка JDK
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java-version }}
+
+      # Сборка проекта
+      - name: Build
+        run: ./gradlew build
+
+      # Запуск тестов
+      - name: Test
+        run: ./gradlew test
+
+  deploy:
+    name: Deploy
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      # Checkout репозиторий
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Деплой через SSH
+      - name: Deploy to Remote Server
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          password: ${{ secrets.REMOTE_PASSWORD }}
+          script: |
+            cd /path/to/deployment
+            git pull origin main
+            ./restart.sh
