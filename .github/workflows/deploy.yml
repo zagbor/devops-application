@@ -1,0 +1,29 @@
+name: Deploy to Railway
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Шаг 1: Клонирование репозитория
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Шаг 2: Установка Railway CLI
+      - name: Install Railway CLI
+        run: npm install -g railway
+
+      # Шаг 3: Авторизация Railway
+      - name: Login to Railway
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: railway login --token $RAILWAY_TOKEN
+
+      # Шаг 4: Деплой приложения
+      - name: Deploy to Railway
+        run: railway up
